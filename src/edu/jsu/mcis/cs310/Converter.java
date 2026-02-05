@@ -79,7 +79,41 @@ public class Converter {
         try {
         
             // INSERT YOUR CODE HERE
-            
+        CSVReader reader = new CSVReader(new java.io.StringReader(csvString));
+        java.util.List<String[]> rows = reader.readAll();
+
+        String[] headings = rows.get(0);
+
+        JsonArray prodNums = new JsonArray();
+        JsonArray colHeadings = new JsonArray();
+        JsonArray data = new JsonArray();
+
+        for (String h : headings) {
+            colHeadings.add(h);
+        }
+
+        for (int i = 1; i < rows.size(); i++) {
+            String[] row = rows.get(i);
+
+            prodNums.add(row[0]);
+            //rows 
+            JsonArray episode = new JsonArray();
+            episode.add(row[1]);                      
+            episode.add(Integer.parseInt(row[2]));   
+            episode.add(Integer.parseInt(row[3]));  
+            episode.add(row[4]);                      
+            episode.add(row[5]);                      
+            episode.add(row[6]);                     
+
+            data.add(episode);
+        }
+
+        JsonObject root = new JsonObject();
+        root.put("ProdNums", prodNums);//production number 
+        root.put("ColHeadings", colHeadings);//header
+        root.put("Data", data);//data row
+
+        result = root.toJson();
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -88,6 +122,7 @@ public class Converter {
         return result.trim();
         
     }
+    //Completed CSVtoJson conversion method
     
     @SuppressWarnings("unchecked")
     public static String jsonToCsv(String jsonString) {
@@ -97,7 +132,55 @@ public class Converter {
         try {
             
             // INSERT YOUR CODE HERE
-            
+            JsonObject root = (JsonObject) Jsoner.deserialize(jsonString);
+
+        JsonArray prodNums = (JsonArray) root.get("ProdNums");
+        JsonArray colHeadings = (JsonArray) root.get("ColHeadings");
+        JsonArray data = (JsonArray) root.get("Data");
+
+        java.io.StringWriter writer = new java.io.StringWriter();
+        CSVWriter csvWriter = new CSVWriter(writer);
+
+       
+        String[] header = new String[colHeadings.size()];
+        for (int i = 0; i < colHeadings.size(); i++) {
+            header[i] = colHeadings.get(i).toString();
+        }
+        csvWriter.writeNext(header);
+
+        
+       for (int i = 0; i < data.size(); i++) {
+
+    JsonArray episode = (JsonArray) data.get(i);
+
+    
+    String[] row = new String[episode.size() + 1];
+    row[0] = prodNums.get(i).toString();
+
+    for (int j = 0; j < episode.size(); j++) {
+
+     if (j == 2) { 
+            int epNum = Integer.parseInt(episode.get(j).toString());
+
+            if (epNum < 10) {
+                row[j + 1] = "0" + epNum;
+            }
+            else {
+                row[j + 1] = Integer.toString(epNum);
+            }
+        }
+        else {
+            row[j + 1] = episode.get(j).toString();
+        }
+    }
+
+    csvWriter.writeNext(row);
+}
+
+
+        csvWriter.close();
+        result = writer.toString();
+
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -108,3 +191,4 @@ public class Converter {
     }
     
 }
+//Completed JsontoCsv conversion method
